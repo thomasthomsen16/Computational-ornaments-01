@@ -65,3 +65,9 @@ so any static host will work later.
 This is an experiment, not a product. Favor small working changes over large rewrites.
 Don't treat the file layout as fixed. Update this file only when a real, settled
 decision actually changes.
+
+The user is a beginner but has coding knowledge. Keep code simple and easy to follow.
+Add comments that explain the algorithm and computational thinking behind the code — how
+and why it works, not just what it does. This helps the user reason about the code and
+develop their artistic experiments. Don't over-comment.
+Avoid complexity that isn't asked for.

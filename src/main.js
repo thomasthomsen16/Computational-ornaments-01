@@ -1,31 +1,58 @@
 import p5 from 'p5';
 
+// p5 instance mode: all p5 functions live on `p` instead of globally.
+// This is required when using a bundler like Vite.
 new p5((/** @type {import('p5')} */ p) => {
-  const arcSize = 50;
-  /** @type {number[]} */
-  let sizes = [];
+
+  // sessionSeed makes randomness differ on each page load,
+  // while staying stable within a session (see drawArcCircle).
+  let sessionSeed = 0;
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
-    sizes = Array.from({ length: 4 }, () => arcSize + p.random(10, 50));
+    // Math.random() is unseeded, so it gives a different value every page load.
+    sessionSeed = Math.random() * 100000;
     p.background(255);
   };
 
   p.draw = () => {
-    let posX = p.width / 2;
-    let posY = p.height / 2;
     p.background(255);
     p.noFill();
-    // Bottom-right.
-    p.arc(posX, posY, sizes[0], sizes[0], 0, p.HALF_PI);
-    // Bottom-left.
-    p.arc(posX, posY, sizes[1], sizes[1], p.HALF_PI, p.PI);
-    // Top-left.
-    p.arc(posX, posY, sizes[2], sizes[2], p.PI, p.PI + p.QUARTER_PI);
-    // Top-right.
-    p.arc(posX, posY, sizes[3], sizes[3], p.PI + p.QUARTER_PI, p.TWO_PI);
+
+    // Draw a 3x3 grid of circles, centered on the canvas.
+    // i controls the column (x), j controls the row (y).
+    // Subtracting 1 from each index shifts [0,1,2] to [-1,0,1],
+    // so the grid is symmetric around the canvas center.
+    for (let j = 0; j < 3; j++) {
+      for (let i = 0; i < 3; i++) {
+        drawArcCircle(p.width / 2 + (i - 1) * 100, p.height / 2 + (j - 1) * 100);
+      }
+    }
+  };
+
+  /**
+   * Draws a circle made of 4 arcs, each with a randomized but stable size.
+   * The circle is divided into four quadrants (0–90°, 90–180°, 180–270°, 270–360°).
+   * @param {number} x
+   * @param {number} y
+   */
+  function drawArcCircle(x, y) {
+    let arcSize = 50;
+
+    // Seeding with position + sessionSeed makes each circle's size unique and
+    // stable per session — same x/y always produces the same random values.
+    p.randomSeed(x * 1000 + y + sessionSeed);
+
+    // Generate one random size per arc (width = height, so arcs stay circular).
+    const s = Array.from({ length: 4 }, () => arcSize + p.random(10, 50));
+
+    p.arc(x, y, s[0], s[0], 0, p.HALF_PI);
+    p.arc(x, y, s[1], s[1], p.HALF_PI, p.PI);
+    p.arc(x, y, s[2], s[2], p.PI, p.PI + p.QUARTER_PI);
+    p.arc(x, y, s[3], s[3], p.PI + p.QUARTER_PI, p.TWO_PI);
   }
 
+  // Keep canvas full-screen when the window is resized.
   p.windowResized = () => {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
   };
