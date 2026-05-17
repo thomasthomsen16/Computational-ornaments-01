@@ -8,7 +8,10 @@ new p5((/** @type {import('p5')} */ p) => {
   // while staying stable within a session (see drawArcCircle).
   let sessionSeed = 0;
 
-  let spacing = 100; // pixels between circle centers in the grid
+  let spacing = 100;   // pixels between circle centers in the grid
+  let arcSize = 50;    // base diameter of each arc; actual size = arcSize + random(10, 50)
+  let arcMaxSize = arcSize + 50; // largest a circle can be
+  let squarePadding = 25; // padding inside the border square
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
@@ -20,6 +23,16 @@ new p5((/** @type {import('p5')} */ p) => {
   p.draw = () => {
     p.background(255);
     p.noFill();
+
+    // The square wraps the full grid: 2 spacings across + one max circle diameter on each side.
+    
+    let squareSize = 2 * spacing + arcMaxSize + squarePadding * 2;
+    p.push()
+    p.stroke(0);
+    p.strokeWeight(5);
+    p.rectMode(p.CENTER);
+    p.rect(p.width / 2, p.height / 2, squareSize, squareSize);
+    p.pop()
 
     // Draw a 3x3 grid of circles, centered on the canvas.
     // i controls the column (x), j controls the row (y).
@@ -39,8 +52,6 @@ new p5((/** @type {import('p5')} */ p) => {
    * @param {number} y
    */
   function drawArcCircle(x, y) {
-    let arcSize = 50;
-
     // Seeding with position + sessionSeed makes each circle's size unique and
     // stable per session — same x/y always produces the same random values.
     p.randomSeed(x * 1000 + y + sessionSeed);
