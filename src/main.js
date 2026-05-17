@@ -8,6 +8,8 @@ new p5((/** @type {import('p5')} */ p) => {
   // while staying stable within a session (see drawArcCircle).
   let sessionSeed = 0;
 
+  let spacing = 100; // pixels between circle centers in the grid
+
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
     // Math.random() is unseeded, so it gives a different value every page load.
@@ -25,7 +27,7 @@ new p5((/** @type {import('p5')} */ p) => {
     // so the grid is symmetric around the canvas center.
     for (let j = 0; j < 3; j++) {
       for (let i = 0; i < 3; i++) {
-        drawArcCircle(p.width / 2 + (i - 1) * 100, p.height / 2 + (j - 1) * 100);
+        drawArcCircle(p.width / 2 + (i - 1) * spacing, p.height / 2 + (j - 1) * spacing);
       }
     }
   };
