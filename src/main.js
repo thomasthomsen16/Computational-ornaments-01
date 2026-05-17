@@ -46,10 +46,17 @@ new p5((/** @type {import('p5')} */ p) => {
     // Generate one random size per arc (width = height, so arcs stay circular).
     const s = Array.from({ length: 4 }, () => arcSize + p.random(10, 50));
 
-    p.arc(x, y, s[0], s[0], 0, p.HALF_PI);
-    p.arc(x, y, s[1], s[1], p.HALF_PI, p.PI);
-    p.arc(x, y, s[2], s[2], p.PI, p.PI + p.QUARTER_PI);
-    p.arc(x, y, s[3], s[3], p.PI + p.QUARTER_PI, p.TWO_PI);
+    p.push();
+    p.translate(x, y);           // move origin to circle center
+    p.rotate(p.frameCount * 0.01); // spin around that center; frameCount drives time
+
+    // Arcs drawn at (0,0) — which is now the rotated circle center.
+    p.arc(0, 0, s[0], s[0], 0, p.HALF_PI);
+    p.arc(0, 0, s[1], s[1], p.HALF_PI, p.PI);
+    p.arc(0, 0, s[2], s[2], p.PI, p.PI + p.QUARTER_PI);
+    p.arc(0, 0, s[3], s[3], p.PI + p.QUARTER_PI, p.TWO_PI);
+
+    p.pop(); // restore transform so the next circle is unaffected
   }
 
   // Keep canvas full-screen when the window is resized.
