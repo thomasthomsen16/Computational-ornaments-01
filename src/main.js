@@ -13,19 +13,43 @@ new p5((/** @type {import('p5')} */ p) => {
   let arcMaxSize = arcSize + 50; // largest a circle can be
   let squarePadding = 25; // padding inside the border square
 
+  // Slider-controlled parameters — updated each frame from the DOM.
+  let noiseSpeed = 0.02;
+  let noiseSteps = 70;
+  let noiseScale = 0.9;
+  let noiseAmt = 20;
+
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
-    // Math.random() is unseeded, so it gives a different value every page load.
     sessionSeed = Math.random() * 100000;
     p.background(255);
+
+    // Update the displayed value next to each slider label as the user drags.
+    document.getElementById('noise-speed').addEventListener('input', (e) => {
+      document.getElementById('noise-speed-val').textContent = parseFloat(e.target.value).toFixed(3);
+    });
+    document.getElementById('steps').addEventListener('input', (e) => {
+      document.getElementById('steps-val').textContent = e.target.value;
+    });
+    document.getElementById('noise-scale').addEventListener('input', (e) => {
+      document.getElementById('noise-scale-val').textContent = parseFloat(e.target.value).toFixed(2);
+    });
+    document.getElementById('noise-amt').addEventListener('input', (e) => {
+      document.getElementById('noise-amt-val').textContent = e.target.value;
+    });
   };
 
   p.draw = () => {
+    // Read slider values once per frame so all drawing uses consistent values.
+    noiseSpeed = parseFloat(document.getElementById('noise-speed').value);
+    noiseSteps = parseInt(document.getElementById('steps').value);
+    noiseScale = parseFloat(document.getElementById('noise-scale').value);
+    noiseAmt = parseFloat(document.getElementById('noise-amt').value);
+
     p.background(255);
     p.noFill();
 
     // The square wraps the full grid: 2 spacings across + one max circle diameter on each side.
-    
     let squareSize = 2 * spacing + arcMaxSize + squarePadding * 2;
     p.push()
     p.stroke(0);
@@ -65,14 +89,14 @@ new p5((/** @type {import('p5')} */ p) => {
     p.rotate(p.frameCount * 0.01); // spin around that center; frameCount drives time
 
     // Slow time value passed to noise so the wobble drifts gradually.
-    const t = p.frameCount * 0.02;
+    const t = p.frameCount * noiseSpeed;
 
     // x and y (original canvas position) are passed as unique offsets into the
     // noise field, so each circle gets its own wobble pattern.
-    drawNoisyArc(s[0] / 2, 0,             p.HALF_PI,              x, y, t);
-    drawNoisyArc(s[1] / 2, p.HALF_PI,     p.PI,                   x, y, t);
-    drawNoisyArc(s[2] / 2, p.PI,          p.PI + p.QUARTER_PI,    x, y, t);
-    drawNoisyArc(s[3] / 2, p.PI + p.QUARTER_PI, p.TWO_PI,         x, y, t);
+    drawNoisyArc(s[0] / 2, 0,                   p.HALF_PI,           x, y, t);
+    drawNoisyArc(s[1] / 2, p.HALF_PI,            p.PI,                x, y, t);
+    drawNoisyArc(s[2] / 2, p.PI,                 p.PI + p.QUARTER_PI, x, y, t);
+    drawNoisyArc(s[3] / 2, p.PI + p.QUARTER_PI,  p.TWO_PI,            x, y, t);
 
     p.pop(); // restore transform so the next circle is unaffected
   }
@@ -80,22 +104,18 @@ new p5((/** @type {import('p5')} */ p) => {
   /**
    * Draws a single arc using Perlin noise to displace each point's radius,
    * producing an organic, wobbly line instead of a smooth curve.
-   * @param {number} radius   - base radius of the arc
+   * @param {number} radius     - base radius of the arc
    * @param {number} startAngle
    * @param {number} endAngle
-   * @param {number} cx       - canvas x of the circle (for unique noise per circle)
-   * @param {number} cy       - canvas y of the circle
-   * @param {number} t        - time offset so the wobble animates over time
+   * @param {number} cx         - canvas x of the circle (for unique noise per circle)
+   * @param {number} cy         - canvas y of the circle
+   * @param {number} t          - time offset so the wobble animates over time
    */
   function drawNoisyArc(radius, startAngle, endAngle, cx, cy, t) {
-    const steps = 70;       // number of points sampled along the arc
-    const noiseScale = 0.9; // how tightly the noise varies along the arc; lower = broader waves
-    const noiseAmt = 20;    // max pixel displacement inward or outward from the base radius
-
     p.beginShape();
-    for (let i = 0; i <= steps; i++) {
+    for (let i = 0; i <= noiseSteps; i++) {
       // Map step index to an angle between start and end.
-      const a = p.map(i, 0, steps, startAngle, endAngle);
+      const a = p.map(i, 0, noiseSteps, startAngle, endAngle);
 
       // p.noise() returns a smooth value in [0, 1].
       // Three inputs: angle position along the arc, unique circle offset, and time.
